@@ -25,6 +25,7 @@ executable ld33
                        gloss-game,
                        parsec,
                        mtl,
-                       astar
+                       astar,
+                       random
   -- hs-source-dirs:      
   default-language:    Haskell2010

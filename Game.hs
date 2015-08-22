@@ -17,7 +17,7 @@ import Graphics.Gloss
 
 import Constants
 import World
-import Npc
+import Castle
 
 type GameState = State Game
 

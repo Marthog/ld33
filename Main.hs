@@ -8,6 +8,7 @@ import Data.Maybe
 
 import World
 import Constants
+import Castle
 import Game
 
 
@@ -17,14 +18,33 @@ main = do
 
     game <- newGame "test"
 
-    playIO window black 60 game draw input update
+    playIO window (greyN 0.5) 60 game draw input update
     
 
 
 
-input event world
+
+input :: Event -> Game -> IO Game
+input event game
     | EventKey (SpecialKey KeyEsc) Down _ _ <- event = error "exit"
-    | otherwise = return world 
+    | EventKey (MouseButton LeftButton) Down _ (x,y) <- event = handleClick x y game
+    | otherwise = return game 
+
+
+handleClick :: Float -> Float -> Game -> IO Game
+handleClick x y game = do
+    let action = getTileAtPosition x y game >>= \(Tile name _) -> Just(print name)
+    case action of
+        Just a  -> a
+        otherwise -> return ()
+    return game
+
+
+
+getTileAtPosition :: Float -> Float -> Game -> Maybe Tile
+getTileAtPosition x y game = do
+    getTile (world game) (mk x) (mk y)
+    where mk a = round (a / fromIntegral tileSize)
 
 
 
@@ -39,19 +59,20 @@ drawWorld world (x0,y0,x1,y1) = pictures $ do
 
 
 -- draw a tile that is already adjusted to the screen
-drawTile (Tile t) x y = translate nx ny t 
+drawTile (Tile _ t) x y = translate nx ny t 
     where
         nx = new x
         ny = new y
-        new a = fromIntegral $ a*20
+        new a = fromIntegral $ a*tileSize
 
 
 draw :: Game -> IO Picture
 draw game = do
     let background = drawWorld (world game) (rectangle game)
     
+    let castle = drawCastleInfo testCastle
 
-    return background
+    return $ pictures [background,castle]
 
 
 update t game = do

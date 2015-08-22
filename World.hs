@@ -5,10 +5,13 @@ module World
     ,World(..)
     ,loadWorld
     ,distanceSq
+    ,index
+    ,getTile
 ) where
 
 
 import Graphics.Gloss
+import Graphics.Gloss.Game
 import Text.Parsec
 import Control.Monad
 
@@ -49,16 +52,30 @@ initRectangle centerX centerY =
 
 decodeTile :: String -> IO Tile
 decodeTile word
-        | word=="color:black"   = return $ Tile $ color black $ rectangleSolid 20 20
-        | word=="color:red"     = return $ Tile $ color red $ rectangleSolid 20 20
-        | otherwise             = Tile `fmap` (loadBMP $ "data/"++word++".bmp")
+        | word=="color:black"   = return $ Tile "black" $ color black $ rectangleSolid 20 20
+        | word=="color:red"     = return $ Tile "red" $ color red $ rectangleSolid 20 20
+        | otherwise             = return $ Tile word (png $ "data/"++word++".png")
 
-data Tile = Tile Picture
 
+
+getTile :: World -> Int -> Int -> Maybe Tile
+getTile world x y = do
+    row <- tiles world `index` y 
+    row `index` x
+
+
+index :: [a] -> Int -> Maybe a
+index (a:_s) 0 = Just a
+index (_:as) n = index as (n-1)
+index _ _      = Nothing
+
+
+data Tile = Tile String Picture
 
 data World = World
     { mapWidth      :: !Int
     , mapHeight     :: !Int
     , tiles         :: [[Tile]]
     }
+
 
