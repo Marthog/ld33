@@ -6,10 +6,9 @@ import Data.List(elemIndex)
 import Data.Maybe
 
 
-
-tileSize = 20
-windowWidth = 400
-windowHeight = 400
+import World
+import Constants
+import Npc
 
 
 main = do
@@ -22,8 +21,6 @@ main = do
     
 
 
-type Position = (Float, Float)
-type Rectangle = (Int, Int, Int, Int)
 
 
 data Game = Game
@@ -47,45 +44,15 @@ initRectangle centerX centerY =
 
 newGame :: String -> IO Game
 newGame mapName = do
-    file <- readFile $ "map/"++mapName++".map"
-    let (init:body) = lines file
-    let tiles = ((map decodeTile) . words) `map` body
-    -- check if the lengths are equal
-    let check = all (\x -> length x == length (head tiles)) tiles
+    world <- loadWorld mapName
+    
     return $ Game
         { time = 0.0
         , npcs  = []
-        , world = World
-            { mapHeight = length tiles
-            , mapWidth  = length $ head tiles
-            , tiles     = tiles
-            }
+        , world = world
         , rectangle = initRectangle 0 0
         }
     
-
-decodeTile :: String -> Tile
-decodeTile word = Tile { tilePic = rectangleSolid 0 0 }
-
-data Tile = Tile
-    { tilePic       :: Picture}
-
-
-
--- empty placeholder
-data World = World
-    { mapWidth      :: !Int
-    , mapHeight     :: !Int
-    , tiles         :: [[Tile]]
-    }
-
-
-data Npc = Npc
-    { name          :: !String
-    , exactPos      :: !(Float, Float)
-    , rotation      :: !Float
-    }
-
 
 
 
@@ -121,5 +88,6 @@ draw game = do
     return background
 
 
-update t game = return (game { time = (time game)+t })
+update t game = do
+    return (game { time = (time game)+t })
 
