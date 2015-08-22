@@ -1,6 +1,6 @@
 module Constants
 where
 
-tileSize = 20               :: Int
+tileSize = 32               :: Int
 windowWidth = 400           :: Int
 windowHeight = 400          :: Int

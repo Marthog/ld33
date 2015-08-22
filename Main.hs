@@ -8,7 +8,7 @@ import Data.Maybe
 
 import World
 import Constants
-import Npc
+import Game
 
 
 main = do
@@ -18,40 +18,6 @@ main = do
     game <- newGame "test"
 
     playIO window black 60 game draw input update
-    
-
-
-
-
-data Game = Game
-    { time          :: !Float
-    , npcs          :: [Npc]
-    , world           :: World
-
-    -- x0 y0 x1 y1
-    , rectangle     :: !Rectangle
-    }
-
-
-initRectangle centerX centerY =
-    (centerX - wtiles
-    ,centerY-htiles
-    ,centerX+wtiles
-    ,centerY+htiles)
-    where   tileDiv s = (s `div` tileSize `div` 2)+1
-            wtiles = tileDiv windowWidth
-            htiles = tileDiv windowHeight
-
-newGame :: String -> IO Game
-newGame mapName = do
-    world <- loadWorld mapName
-    
-    return $ Game
-        { time = 0.0
-        , npcs  = []
-        , world = world
-        , rectangle = initRectangle 0 0
-        }
     
 
 
@@ -73,7 +39,7 @@ drawWorld world (x0,y0,x1,y1) = pictures $ do
 
 
 -- draw a tile that is already adjusted to the screen
-drawTile tile x y = translate nx ny (tilePic tile)
+drawTile (Tile t) x y = translate nx ny t 
     where
         nx = new x
         ny = new y

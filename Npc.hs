@@ -1,55 +1,21 @@
-{-# LANGUAGE RecordWildCards #-}
+module Npc
+
+where
 
 
-module Npc(
-    Npc(..)
-    ,Animation
-    ,playAnimation
-) where
-
-import Graphics.Gloss
-
-import World(Position, distanceSq)
+data NpcType = Orc
 
 
-data Target = NpcTarget Npc
-    | TargetPos Position
+data ActionType = GoTo
+    | Attack Float
+    | SplashDamage Float Float
+
+data Action = Action (Int, Int) ActionType
 
 
-data Npc = Npc
-    { name          :: !String
-    , position      :: !(Float, Float)
-    , rotation      :: !Float
-    , speed         :: !Float
-    , health        :: !Float
-    }
+isPathBlocked npcPos pos = False
 
 
-
-data Animation = Animation
-    { frames            :: [Picture]
-    , looped            :: !Bool
-    , frameTime         :: !Float
-    , lastTime          :: !Float
-    }
+isNextTo (x0,y0) (x1,y1) = x0-x1<=1 && y0-y1<=1
 
 
-playAnimation time anim@Animation{..} = head frames
-
-
-
-takeNpcsInRadius center radius = span isInRadius
-    where   isInRadius npc = position npc `distanceSq` center <= radiusSq
-            radiusSq = radius^2
-
-
-splashDamage center damage radius self = do
-    return 0
-    
-
-
-
-
-updateNpc timeDif npc = do
-    return 0        
-     

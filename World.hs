@@ -2,7 +2,6 @@ module World
     (decodeTile
     ,Position,Rectangle
     ,Tile(..)
-    ,tilePic
     ,World(..)
     ,loadWorld
     ,distanceSq
@@ -13,9 +12,7 @@ import Graphics.Gloss
 import Text.Parsec
 import Control.Monad
 
-
 import Constants
-
 
 
 
@@ -23,7 +20,8 @@ loadWorld :: String -> IO World
 loadWorld mapName = do
     file <- readFile $ "map/"++mapName++".map"
     let (init:body) = lines file
-    let tiles = ((map decodeTile) . words) `map` body
+    let ws = words `map` body
+    tiles <- forM ws (\l -> forM l decodeTile)
     -- check if the lengths are equal
     let check = all (\x -> length x == length (head tiles)) tiles
     return $ 
@@ -49,11 +47,13 @@ initRectangle centerX centerY =
             wtiles = tileDiv windowWidth
             htiles = tileDiv windowHeight
 
-decodeTile :: String -> Tile
-decodeTile word = Tile { tilePic = color red $ rectangleSolid 20 20 }
+decodeTile :: String -> IO Tile
+decodeTile word
+        | word=="color:black"   = return $ Tile $ color black $ rectangleSolid 20 20
+        | word=="color:red"     = return $ Tile $ color red $ rectangleSolid 20 20
+        | otherwise             = Tile `fmap` (loadBMP $ "data/"++word++".bmp")
 
-data Tile = Tile
-    { tilePic       :: Picture}
+data Tile = Tile Picture
 
 
 data World = World
