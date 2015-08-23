@@ -27,7 +27,7 @@ data Game = Game
     , world           :: World
 
     -- x0 y0 x1 y1
-    , rectangle     :: !Rectangle
+    , rectangle     :: !IRectangle
     }
 
 

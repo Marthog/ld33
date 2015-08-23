@@ -1,15 +1,18 @@
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss.Game
+import Graphics.Gloss.Data.Point
+
 import Data.Fixed
 import Data.List(elemIndex)
 import Data.Maybe
-
+import Control.Monad
 
 import World
 import Constants
 import Castle
 import Game
+import GUI
 
 
 main = do
@@ -18,28 +21,32 @@ main = do
 
     game <- newGame "test"
 
-    playIO window (greyN 0.5) 60 game draw input update
+    playIO window black 60 game render input update
     
-
-
 
 
 input :: Event -> Game -> IO Game
 input event game
     | EventKey (SpecialKey KeyEsc) Down _ _ <- event = error "exit"
-    | EventKey (MouseButton LeftButton) Down _ (x,y) <- event = handleClick x y game
+    | EventKey (MouseButton LeftButton) Down _ p <- event = clickOn p game (topGui game)
     | otherwise = return game 
 
 
 handleClick :: Float -> Float -> Game -> IO Game
 handleClick x y game = do
-    let action = getTileAtPosition x y game >>= \(Tile name _) -> Just(print name)
-    case action of
-        Just a  -> a
-        otherwise -> return ()
+    if y>(-windowHeightF/2.0+100) 
+    then do {
+        action <- return $ getTileAtPosition x y game >>= \(Tile name _) -> Just(print name)
+        ; case action of
+            Just a  -> a
+            otherwise -> return ()
+        ; return game }
+    else foldM (handle (x,y)) game buttons
     return game
 
 
+handleClickIngame :: ActionHandler Game
+handleClickIngame (x,y) game = handleClick x y game
 
 getTileAtPosition :: Float -> Float -> Game -> Maybe Tile
 getTileAtPosition x y game = do
@@ -48,7 +55,9 @@ getTileAtPosition x y game = do
 
 
 
-drawWorld :: World -> Rectangle -> Picture
+
+
+drawWorld :: World -> IRectangle -> Picture
 drawWorld world (x0,y0,x1,y1) = pictures $ do
     (row, y) <- skipTake (y1-y0) y0 $ tiles world
     (tile, x) <- skipTake (x1-x0) x0 row
@@ -66,13 +75,79 @@ drawTile (Tile _ t) x y = translate nx ny t
         new a = fromIntegral $ a*tileSize
 
 
-draw :: Game -> IO Picture
-draw game = do
-    let background = drawWorld (world game) (rectangle game)
-    
-    let castle = drawCastleInfo testCastle
 
-    return $ pictures [background,castle]
+windowWidthF = fromIntegral windowWidth :: Float
+windowHeightF = fromIntegral windowHeight :: Float
+
+
+
+buttons =
+    [ ClickRect (-windowWidthF/2,-windowHeightF/2+100.0) (-windowWidthF/2+200.0, -windowHeightF/2)
+        (\game -> error "exit")
+    ]
+
+
+
+data ClickRect = ClickRect Point Point (Game -> IO Game)
+
+
+
+
+
+gameRect = Rectangle (-windowWidthF/2,-windowHeightF/2) (windowWidthF/2,windowHeightF/2)
+ingameRect = Rectangle (-windowWidthF/2,-windowHeightF/2+100) (windowWidthF/2,windowHeightF/2)
+
+background :: Game -> Gui Game
+background game = Gui (Button pic handleClickIngame) ingameRect
+    where   pic = drawWorld (world game) (rectangle game)
+
+
+guiBar game = Gui (Group ls)
+    (Rectangle(-windowWidthF/2,-windowHeightF/2) (windowWidthF/2,-windowHeightF/2+100))
+    where   ls= [ Gui (Static guiBarBottom) $ Rectangle (0,0) (0,0)
+                , Gui (Button exitButton (\_ _ -> error "exit")) $ Rectangle (-windowWidthF/2,-50) (-windowWidthF/2+100,50)
+                ]
+
+
+exitButton = pictures [
+    rectangleWire 150 100
+    , translate (-50) 0 $ scale 0.2 0.2 $ text "Exit"
+    ] 
+
+
+handle :: Point -> Game -> ClickRect -> IO Game
+handle cursor game (ClickRect p0 p1 f) = do
+    if pointInBox cursor p0 p1
+    then f game
+    else return game
+
+
+
+castle game = Gui (Static $ drawCastleInfo testCastle) $ Rectangle (00,0) (00,0)
+topGui game = Gui (Group children) gameRect 
+    where   children =
+                ($game) `map` [ guiBar
+                , background 
+                , castle
+                ]
+
+
+guiBarBottom = png "data/gui-down.png"
+
+drawGuiBar :: Game -> Picture
+drawGuiBar game =
+    let guiBar = guiBarBottom
+    in  translate 0.0 (-windowHeightF/2.0+50.0) $ pictures [guiBar]
+
+
+render :: Game -> IO Picture
+render game = do
+    --let background = drawWorld (world game) (rectangle game)
+    let bgRect = color (greyN 0.5) $!
+         rectangleSolid windowWidthF windowHeightF
+
+    return $ pictures [bgRect, draw $ topGui game]
+    
 
 
 update t game = do

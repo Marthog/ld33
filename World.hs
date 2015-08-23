@@ -1,6 +1,6 @@
 module World
     (decodeTile
-    ,Position,Rectangle
+    ,Position,IRectangle
     ,Tile(..)
     ,World(..)
     ,loadWorld
@@ -16,7 +16,7 @@ import Text.Parsec
 import Control.Monad
 
 import Constants
-
+import GUI
 
 
 loadWorld :: String -> IO World
@@ -39,7 +39,7 @@ type Position = (Float, Float)
 distanceSq (x0, y0) (x1, y1) = (x0-x1)^2 + (y0-y1)^2
 
 
-type Rectangle = (Int, Int, Int, Int)
+type IRectangle = (Int, Int, Int, Int)
 
 initRectangle centerX centerY =
     (centerX - wtiles
