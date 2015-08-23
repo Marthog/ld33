@@ -1,6 +1,6 @@
 module World
     (decodeTile
-    ,Position,IRectangle
+    ,IRectangle
     ,Tile(..)
     ,World(..)
     ,loadWorld
@@ -19,6 +19,11 @@ import Constants
 import GUI
 
 
+
+--generateWorld
+
+
+
 loadWorld :: String -> IO World
 loadWorld mapName = do
     file <- readFile $ "map/"++mapName++".map"
@@ -35,7 +40,6 @@ loadWorld mapName = do
 
 
 
-type Position = (Float, Float)
 distanceSq (x0, y0) (x1, y1) = (x0-x1)^2 + (y0-y1)^2
 
 
@@ -48,7 +52,7 @@ initRectangle centerX centerY =
     ,centerY+htiles)
     where   tileDiv s = (s `div` tileSize `div` 2)+1
             wtiles = tileDiv windowWidth
-            htiles = tileDiv windowHeight
+            htiles = tileDiv (windowHeight-100)
 
 decodeTile :: String -> IO Tile
 decodeTile word

@@ -68,7 +68,7 @@ instance Eq Npc where
 
 
 data Target = NpcTarget Npc
-    | TargetPos Position
+    | TargetPos Point
 
 removeNpc :: Npc -> GameState ()
 removeNpc npc = modifyNpcList $ deleteBy ((==) `on` npcId) npc
@@ -102,7 +102,7 @@ isNpcInRadius center radius npc = position npc `distanceSq` center <= radiusSq
 data Effect = Effect
 
 
-splashDamage :: Position -> Float -> Float -> Npc -> GameState [Effect]
+splashDamage :: Point -> Float -> Float -> Npc -> GameState [Effect]
 splashDamage center damage radius self = do
     list <- modifyNpcs makeDamage
     return $ concat list

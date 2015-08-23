@@ -30,6 +30,10 @@ data GuiType a = Group [Gui a]
     | Button Picture (ActionHandler a)
 
 
+group ls rect = Gui (Group ls) rect
+static pic rect = Gui (Static pic) rect
+button pic rect action = Gui (Button pic action) rect
+
 noAction :: ActionHandler a
 noAction = \_ -> return
 

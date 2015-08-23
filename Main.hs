@@ -32,33 +32,30 @@ input event game
     | otherwise = return game 
 
 
-handleClick :: Float -> Float -> Game -> IO Game
-handleClick x y game = do
-    if y>(-windowHeightF/2.0+100) 
-    then do {
-        action <- return $ getTileAtPosition x y game >>= \(Tile name _) -> Just(print name)
-        ; case action of
-            Just a  -> a
-            otherwise -> return ()
-        ; return game }
-    else foldM (handle (x,y)) game buttons
+handleClickIngame :: ActionHandler Game
+handleClickIngame (x,y) game = do
+    action <- return $ getTileAtPosition x y game >>= \(Tile name _) -> Just(print name)
+    case action of
+        Just a  -> a
+        otherwise -> return ()
     return game
 
-
-handleClickIngame :: ActionHandler Game
-handleClickIngame (x,y) game = handleClick x y game
-
+{-
 getTileAtPosition :: Float -> Float -> Game -> Maybe Tile
 getTileAtPosition x y game = do
     getTile (world game) (mk x) (mk y)
     where mk a = round (a / fromIntegral tileSize)
 
 
+-}
+
+
+drawWorld :: Game -> IRectangle -> Gui Game
+drawWorld Game (x0,y0,x1,y1) = 
 
 
 
-drawWorld :: World -> IRectangle -> Picture
-drawWorld world (x0,y0,x1,y1) = pictures $ do
+pictures $ do
     (row, y) <- skipTake (y1-y0) y0 $ tiles world
     (tile, x) <- skipTake (x1-x0) x0 row
     return $ drawTile tile x y
@@ -75,16 +72,8 @@ drawTile (Tile _ t) x y = translate nx ny t
         new a = fromIntegral $ a*tileSize
 
 
-
 windowWidthF = fromIntegral windowWidth :: Float
 windowHeightF = fromIntegral windowHeight :: Float
-
-
-
-buttons =
-    [ ClickRect (-windowWidthF/2,-windowHeightF/2+100.0) (-windowWidthF/2+200.0, -windowHeightF/2)
-        (\game -> error "exit")
-    ]
 
 
 
@@ -92,10 +81,9 @@ data ClickRect = ClickRect Point Point (Game -> IO Game)
 
 
 
-
-
 gameRect = Rectangle (-windowWidthF/2,-windowHeightF/2) (windowWidthF/2,windowHeightF/2)
 ingameRect = Rectangle (-windowWidthF/2,-windowHeightF/2+100) (windowWidthF/2,windowHeightF/2)
+
 
 background :: Game -> Gui Game
 background game = Gui (Button pic handleClickIngame) ingameRect
@@ -105,7 +93,8 @@ background game = Gui (Button pic handleClickIngame) ingameRect
 guiBar game = Gui (Group ls)
     (Rectangle(-windowWidthF/2,-windowHeightF/2) (windowWidthF/2,-windowHeightF/2+100))
     where   ls= [ Gui (Static guiBarBottom) $ Rectangle (0,0) (0,0)
-                , Gui (Button exitButton (\_ _ -> error "exit")) $ Rectangle (-windowWidthF/2,-50) (-windowWidthF/2+100,50)
+                , Gui (Button exitButton (\_ _ -> error "exit"))
+                    $ Rectangle (-windowWidthF/2,-50) (-windowWidthF/2+100,50)
                 ]
 
 
